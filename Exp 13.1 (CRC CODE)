@@ -1,59 +1,64 @@
-def xor(a, b):
-    result = []
-    for i in range(1, len(b)):
-        if a[i] == b[i]:
-            result.append('0')
-        else:
-            result.append('1')
-    return ''.join(result)
 
+#include<stdio.h>  
+#include<string.h>  
+#define N strlen(gen_poly)  
 
-def mod2div(dividend, divisor):
-    pick = len(divisor)
-    tmp = dividend[0:pick]
+char data[28], check_value[28], gen_poly[10];  
+int data_length,i,j;  
 
-    while pick < len(dividend):
-        if tmp[0] == '1':
-            tmp = xor(divisor, tmp) + dividend[pick]
-        else:
-            tmp = xor('0' * pick, tmp) + dividend[pick]
-        pick += 1
+void XOR(){ 
+    for(j = 1;j < N; j++)  
+    check_value[j] = (( check_value[j] == gen_poly[j])?'0':'1'); 
+}  
 
-    if tmp[0] == '1':
-        tmp = xor(divisor, tmp)
-    else:
-        tmp = xor('0' * pick, tmp)
+void receiver(){  
+ 
+    printf("Enter the received data: ");  
+    scanf("%s", data);  
+    printf("\n-----------------------------\n");  
+    printf("Data received: %s", data);  
+ 
+    crc();  
 
-    checkword = tmp
-    return checkword
+    for(i=0;(i<N-1) && (check_value[i]!='1');i++);  
+        if(i<N-1)  
+            printf("\nError detected\n\n");  
+        else  
+            printf("\nNo error detected\n\n");  
+}  
+  
 
-
-def encode(data, key):
-    key_len = len(key)
-    appended_data = data + '0' * (key_len - 1)
-    remainder = mod2div(appended_data, key)
-    codeword = data + remainder
-    print(f"Encoded Data: {codeword}")
-    return codeword
-
-
-def decode(data, key):
-    remainder = mod2div(data, key)
-    print(f"Remainder after decoding: {remainder}")
-    if '1' not in remainder:
-        print("No error detected in received data")
-    else:
-        print("Error detected in received data")
-
-
-# Main function
-if __name__ == "__main__":
-    data = input("Enter the data bits: ")
-    key = input("Enter the key (divisor): ")
-
-    # Encoding
-    encoded_data = encode(data, key)
-
-    # Decoding
-    print("\nDecoding the encoded data...")
-    decode(encoded_data, key)
+void crc(){  
+    for(i=0;i<N;i++)  
+        check_value[i]=data[i];  
+    do{    
+        if(check_value[0]=='1')  
+            XOR();  
+        for(j=0;j<N-1;j++)  
+            check_value[j]=check_value[j+1];  
+        check_value[j]=data[i++];  
+    }while(i<=data_length+N-1);  
+}  
+  
+int main()  
+{  
+    printf("\nEnter data to be transmitted: ");  
+    scanf("%s",data);  
+    printf("\n Enter the Generating polynomial: ");  
+    scanf("%s",gen_poly);  
+    data_length=strlen(data);  
+    for(i=data_length;i<data_length+N-1;i++)  
+        data[i]='0';  
+    printf("\n----------------------------------------");  
+    printf("\n Data padded with n-1 zeros : %s",data);  
+    printf("\n----------------------------------------");  
+    crc();  
+    printf("\nCRC or Check value is : %s",check_value);  
+    for(i=data_length;i<data_length+N-1;i++)  
+        data[i]=check_value[i-data_length];  
+    printf("\n----------------------------------------");  
+    printf("\n Final data to be sent : %s",data);  
+    printf("\n----------------------------------------\n");  
+    receiver();  
+        return 0;  
+}  
